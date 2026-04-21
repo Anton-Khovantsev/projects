@@ -1,0 +1,58 @@
+1. Сбор данных о пользователях [Users]
+SELECT
+    user_id,
+    registration_date,
+    user_params ->> 'age' AS age,
+    user_params ->> 'gender' AS gender,
+    user_params ->> 'region' AS region,
+    user_params ->> 'acq_channel' AS acq_channel,
+    user_params ->> 'buyer_segment' AS buyer_segment,
+    DATE_TRUNC('week', registration_date)::DATE AS cohort_week,
+    DATE_TRUNC('month', registration_date)::DATE AS cohort_month
+FROM
+    pa_graduate.users
+WHERE
+    EXTRACT(YEAR FROM registration_date) = 2024
+ORDER BY
+    registration_date ASC;
+----------------------------------------
+2. Сбор данных о событиях [Events]
+SELECT
+    e.event_id,
+    e.user_id,
+    e.timestamp AS event_date,
+    e.event_type,
+    e.event_params ->> 'os' AS os,
+    e.event_params ->> 'device' AS device,
+    pd.product_name,
+    DATE_TRUNC('week', e.timestamp)::DATE AS event_week,
+    DATE_TRUNC('month', e.timestamp)::DATE AS event_month
+FROM
+    pa_graduate.Events AS e
+LEFT JOIN
+    pa_graduate.Product_dict AS pd ON e.product_id = pd.product_id
+WHERE
+    EXTRACT (YEAR FROM timestamp) = 2024
+ORDER BY
+    e.event_date ASC;
+----------------------------------------
+3. Сбор данных о заказах [Orders]
+SELECT
+    o.order_id,
+    o.user_id,
+    o.order_date,
+    pd.product_name,
+    o.quantity,
+    o.unit_price,
+    o.total_price,
+    pd.category_name,
+    DATE_TRUNC('week', o.order_date)::DATE AS order_week,
+    DATE_TRUNC('month', o.order_date)::DATE AS order_month
+FROM 
+    pa_graduate.Orders AS o
+LEFT JOIN 
+    pa_graduate.Product_dict AS pd ON o.product_id = pd.product_id
+WHERE 
+    EXTRACT (YEAR FROM o.order_date) = 2024
+ORDER BY 
+    o.order_date ASC;
